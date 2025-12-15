@@ -630,28 +630,28 @@ export default function EstateProUnified() {
                   )}
               </div>
             
-              {/* ... reszta nawigacji ... */}
-              <nav className="px-2 py-6 space-y-1">
-                  <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
-                  <NavItem icon={<Home />} label="Oferty & Mapa" id="properties" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Users />} label="Klienci (CRM)" id="crm" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Mail />} label="Poczta" id="mail" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Printer />} label="Generator PDF" id="pdf_generator" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<MapPin />} label="Analiza Dzielnic" id="districts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Briefcase />} label="Zespół HR" id="team" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Calculator />} label="Finanse & Wycena" id="finance" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Calendar />} label="Kalendarz" id="calendar" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Sparkles />} label="Marketing AI" id="marketing" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<MessageSquare />} label="Skrypty Rozmów" id="scripts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  <NavItem icon={<Repeat />} label="Giełda Off-Market" id="internal_market" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                  {currentUser?.role === 'CEO' && (
-                      <>
-                           <NavItem icon={<Shield />} label="Panel CEO" id="admin" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                           <NavItem icon={<PieChartIcon />} label="Analityka" id="analytics" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-                      </>
-                  )}
-              </nav>
-           </div>
+				  {/* ... reszta nawigacji ... */}
+				             <nav className="px-2 py-6 space-y-1">
+				                 <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Home />} label="Oferty & Mapa" id="properties" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Users />} label="Klienci (CRM)" id="crm" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Mail />} label="Poczta" id="mail" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Printer />} label="Generator PDF" id="pdf_generator" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<MapPin />} label="Analiza Dzielnic" id="districts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Briefcase />} label="Zespół HR" id="team" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Calculator />} label="Finanse & Wycena" id="finance" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Calendar />} label="Kalendarz" id="calendar" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Sparkles />} label="Marketing AI" id="marketing" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<MessageSquare />} label="Skrypty Rozmów" id="scripts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 <NavItem icon={<Repeat />} label="Giełda Off-Market" id="internal_market" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                 {currentUser?.role === 'CEO' && (
+				                     <>
+				                          <NavItem icon={<Shield />} label="Panel CEO" id="admin" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                          <NavItem icon={<PieChartIcon />} label="Analityka" id="analytics" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
+				                     </>
+				                 )}
+				             </nav>
+				             </div>
    
            {/* ZMIANA: Dół sidebara też na bg-black (lub bardzo ciemny szary dla odcięcia) */}
            <div className="p-4 bg-black border-t border-slate-800 flex flex-col gap-4">
