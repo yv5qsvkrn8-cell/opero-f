@@ -238,7 +238,7 @@ export default function EstateProUnified() {
   const handleAddClient = async () => { 
       const newLeadId = Date.now();
       const newLead = { id: newLeadId, ...newClientData, revealed: true, status: 'new' };
-      setLeads([newLead, ...leads]); 
+      setLeads([newLead as any, ...leads]);
       setCrmModalOpen(false); 
       try {
           await fetch(`${API_BASE_URL}/leads`, {
