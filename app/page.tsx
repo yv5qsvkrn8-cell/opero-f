@@ -632,7 +632,7 @@ export default function EstateProUnified() {
             
               {/* ... reszta nawigacji ... */}
               <nav className="px-2 py-6 space-y-1">
-                  <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} badge={null} color={null} />
                   <NavItem icon={<Home />} label="Oferty & Mapa" id="properties" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
                   <NavItem icon={<Users />} label="Klienci (CRM)" id="crm" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
                   <NavItem icon={<Mail />} label="Poczta" id="mail" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
