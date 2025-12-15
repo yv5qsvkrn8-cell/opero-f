@@ -220,7 +220,7 @@ export default function EstateProUnified() {
           avatar: newEmployeeData.avatar || 'XX', sales: 0, deals: 0 
       };
 
-      setUsers([...users, newEmp]);
+     setUsers([...users, newEmp as any]);
       setEmployeeModalOpen(false);
       
       try {
