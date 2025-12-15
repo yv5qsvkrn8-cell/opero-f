@@ -23,10 +23,9 @@ import {
     OnboardingTour, TeamView, DistrictAnalysisView, PdfGeneratorView, MailView, LoginView
 } from './components';
 
-// PORT BACKENDOWY
-const API_BASE_URL = 'http://127.0.0.1:5001/api'; 
-const SCRAPE_API_URL = 'http://127.0.0.1:5001/api/scrape'; 
-
+// PORT BACKENDOWY (Render)
+const API_BASE_URL = 'https://operox-backend.onrender.com/api'; 
+const SCRAPE_API_URL = 'https://operox-backend.onrender.com/api/scrape';
 // --- DEFINICJA DOSTĘPNYCH PORTALI ---
 const AVAILABLE_PORTALS = [
   { id: 'otodom', label: 'Otodom', color: 'bg-green-100 text-green-700 border-green-200' },
