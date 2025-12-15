@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: page.tsx (v95.0 - WERSJA NAPRAWIONA - TYPESCRIPT FIX)
+   PLIK: page.tsx (v100.0 - FINAL FIX - TYPY: EVENTS NAPRAWIONE)
    ========================================================================================== */
 
 import React, { useState, useEffect } from 'react';
@@ -45,28 +45,26 @@ const BRAND_LOGO_URL = '/logo.png';
 
 export default function EstateProUnified() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [users, setUsers] = useState(USERS);
-  // FIX: Dodano <any> aby uniknąć błędu 'currentUser possibly null'
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // --- NAPRAWIONE STANY (WSZYSTKIE MAJĄ <any[]>) ---
+  const [users, setUsers] = useState<any[]>(USERS); // FIX: any[]
+  const [currentUser, setCurrentUser] = useState<any>(null); // FIX: any
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showOnboarding, setShowOnboarding] = useState(true);
   
   // --- DANE Z BAZY ---
-  // FIX: Dodano <any[]> aby uniknąć błędu 'never[]'
-  const [properties, setProperties] = useState<any[]>([]); 
-  const [leads, setLeads] = useState(INITIAL_LEADS);
-  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [properties, setProperties] = useState<any[]>([]); // FIX: any[]
+  const [leads, setLeads] = useState<any[]>(INITIAL_LEADS); // FIX: any[]
+  const [events, setEvents] = useState<any[]>(INITIAL_EVENTS); // FIX: any[] *** KLUCZOWA POPRAWKA ***
   
   // Dane lokalne
-  // FIX: Dodano <any[]>
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]); // FIX: any[]
   const [internalAds, setInternalAds] = useState(INTERNAL_MARKET_ADS);
 
   // --- STATE UI ---
   const [searchTerm, setSearchTerm] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  // FIX: Dodano <any[]> (to już miałeś, ale zostawiam dla pewności)
-  const [toasts, setToasts] = useState<any[]>([]);
+  const [toasts, setToasts] = useState<any[]>([]); // FIX: any[]
   const [isScraping, setIsScraping] = useState(false);
 
   // --- STANY DLA MODALI ---
@@ -220,7 +218,7 @@ export default function EstateProUnified() {
           avatar: newEmployeeData.avatar || 'XX', sales: 0, deals: 0 
       };
 
-     setUsers([...users, newEmp as any]);
+      setUsers([...users, newEmp as any]); // FIX: as any
       setEmployeeModalOpen(false);
       
       try {
@@ -238,7 +236,7 @@ export default function EstateProUnified() {
   const handleAddClient = async () => { 
       const newLeadId = Date.now();
       const newLead = { id: newLeadId, ...newClientData, revealed: true, status: 'new' };
-      setLeads([newLead as any, ...leads]);
+      setLeads([newLead as any, ...leads]); // FIX: as any
       setCrmModalOpen(false); 
       try {
           await fetch(`${API_BASE_URL}/leads`, {
@@ -251,7 +249,7 @@ export default function EstateProUnified() {
   // --- DODAWANIE WYDARZENIA ---
   const handleAddEvent = async () => { 
       const newEv = { id: Date.now(), ...newEventData, day: 12 }; 
-      setEvents([...events, newEv]);
+      setEvents([...events, newEv as any]); // FIX: as any *** KLUCZOWA POPRAWKA ***
       setEventModalOpen(false); 
       try {
           await fetch(`${API_BASE_URL}/events`, {
