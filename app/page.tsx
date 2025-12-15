@@ -135,7 +135,7 @@ export default function EstateProUnified() {
       } catch (err) {
           console.error("Błąd pobierania danych:", err);
           // Fallback do danych lokalnych w razie awarii backendu, aby UI nie był pusty
-          if (properties.length === 0) setProperties(INITIAL_PROPERTIES);
+        if (properties.length === 0) setProperties(INITIAL_PROPERTIES as any);
           addToast("Tryb offline (Błąd połączenia z API)", "error");
       }
   };
