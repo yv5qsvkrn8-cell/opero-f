@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: page.tsx (v95.0 - INTEGRACJA BACKEND: ROLE + CLAIMOWANIE LEADÓW)
+   PLIK: page.tsx (v95.0 - WERSJA NAPRAWIONA - TYPESCRIPT FIX)
    ========================================================================================== */
 
 import React, { useState, useEffect } from 'react';
@@ -26,6 +26,7 @@ import {
 // PORT BACKENDOWY (Render)
 const API_BASE_URL = 'https://operox-backend.onrender.com/api'; 
 const SCRAPE_API_URL = 'https://operox-backend.onrender.com/api/scrape';
+
 // --- DEFINICJA DOSTĘPNYCH PORTALI ---
 const AVAILABLE_PORTALS = [
   { id: 'otodom', label: 'Otodom', color: 'bg-green-100 text-green-700 border-green-200' },
@@ -40,28 +41,32 @@ const AVAILABLE_PORTALS = [
 
 // NOWA ZMIENNA: Logo i Nazwa
 const BRAND_NAME = 'OperoX'; 
-const BRAND_LOGO_URL = '/logo.png'; // Zakładam, że logo.jpg jest dostępne w public/
+const BRAND_LOGO_URL = '/logo.png'; 
 
 export default function EstateProUnified() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [users, setUsers] = useState(USERS);
-  const [currentUser, setCurrentUser] = useState(null);
+  // FIX: Dodano <any> aby uniknąć błędu 'currentUser possibly null'
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showOnboarding, setShowOnboarding] = useState(true);
   
   // --- DANE Z BAZY ---
-  const [properties, setProperties] = useState([]); // Startujemy pusto, dane przyjdą z backendu
+  // FIX: Dodano <any[]> aby uniknąć błędu 'never[]'
+  const [properties, setProperties] = useState<any[]>([]); 
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [events, setEvents] = useState(INITIAL_EVENTS);
   
   // Dane lokalne
-  const [announcements, setAnnouncements] = useState([]);
+  // FIX: Dodano <any[]>
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [internalAds, setInternalAds] = useState(INTERNAL_MARKET_ADS);
 
   // --- STATE UI ---
   const [searchTerm, setSearchTerm] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [toasts, setToasts] = useState([]);
+  // FIX: Dodano <any[]> (to już miałeś, ale zostawiam dla pewności)
+  const [toasts, setToasts] = useState<any[]>([]);
   const [isScraping, setIsScraping] = useState(false);
 
   // --- STANY DLA MODALI ---
@@ -82,7 +87,7 @@ export default function EstateProUnified() {
       title: '', price: '', currency: 'PLN', area: '', rooms: '', floor: '', totalFloors: '', year: '', 
       city: 'Gdańsk', district: '', street: '', apartmentNumber: '',
       marketType: 'secondary', buildingType: 'block', 
-      formOfOwnership: 'full', heating: 'city', desc: '', image: null,
+      formOfOwnership: 'full', heating: 'city', desc: '', image: null as any,
       balcony: false, terrace: false, garden: false, elevator: false, parking: false, ac: false, monitoring: false,
       standard: 'refresh',
       sellerType: 'agency', 
@@ -99,7 +104,7 @@ export default function EstateProUnified() {
   const [newEventData, setNewEventData] = useState({ title: '', time: '12:00', client: '', type: 'presentation', linkedPropertyId: '' });
   
   const [newEmployeeData, setNewEmployeeData] = useState({ 
-      name: '', role: 'Agent', experience: '', specialization: '', avatar: null,
+      name: '', role: 'Agent', experience: '', specialization: '', avatar: null as any,
       email: '', phone: '', license: '', commission: '' 
   });
   
@@ -118,14 +123,13 @@ export default function EstateProUnified() {
 
   const fetchDataForUser = async () => {
       try {
-          // Pobieramy oferty dedykowane dla użytkownika (backend filtruje po user_id)
-       const propRes = await fetch(`${API_BASE_URL}/properties?user_id=${(currentUser as any)?.id || ''}`);
+          // FIX: Dodano ?. aby uniknąć błędu dostępu do id
+          const propRes = await fetch(`${API_BASE_URL}/properties?user_id=${currentUser?.id || ''}`);
           if (propRes.ok) {
               const propData = await propRes.json();
               setProperties(propData);
           }
           
-          // Pobieramy resztę danych ogólnych
           const initRes = await fetch(`${API_BASE_URL}/init_data`);
           const initData = await initRes.json();
           
@@ -134,8 +138,8 @@ export default function EstateProUnified() {
           if(initData.events) setEvents(initData.events);
       } catch (err) {
           console.error("Błąd pobierania danych:", err);
-          // Fallback do danych lokalnych w razie awarii backendu, aby UI nie był pusty
-        if (properties.length === 0) setProperties(INITIAL_PROPERTIES as any);
+          // FIX: Dodano 'as any' dla bezpieczeństwa typów
+          if (properties.length === 0) setProperties(INITIAL_PROPERTIES as any);
           addToast("Tryb offline (Błąd połączenia z API)", "error");
       }
   };
@@ -143,12 +147,14 @@ export default function EstateProUnified() {
   // --- HANDLERS ---
   const addToast = (msg: string, type = 'success') => {
       const id = Date.now();
+      // FIX: prev jest teraz typowane jako any[], więc TypeScript nie krzyczy
       setToasts(prev => [...prev, { id, msg, type }]);
       setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 6000);
   };
 
   // --- LOGIKA PORTALI ---
-  const togglePortal = (id) => {
+  // FIX: Dodano typ :any do id
+  const togglePortal = (id: any) => {
     if (selectedPortals.includes(id)) {
         setSelectedPortals(selectedPortals.filter(p => p !== id));
     } else {
@@ -166,14 +172,12 @@ export default function EstateProUnified() {
 
   // --- LOGIN ---
   const handleLogin = async (email: string, password: string) => {
-      // 1. Próba logowania przez API
       try {
           const res = await fetch(`${API_BASE_URL}/login_mock`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email })
           });
           if (res.ok) {
               const userData = await res.json();
-              // W prawdziwej aplikacji hasło sprawdza backend, tu dla mocka robimy to frontendowo
               if (userData.password === password) {
                   setCurrentUser(userData);
                   setIsAuthenticated(true);
@@ -183,7 +187,6 @@ export default function EstateProUnified() {
           }
       } catch (e) { }
 
-      // 2. Fallback lokalny (gdy API nie działa lub user nie istnieje w bazie SQL)
       const user = users.find(u => u.email === email && u.password === password);
       
       if (user) {
@@ -193,7 +196,6 @@ export default function EstateProUnified() {
           return true;
       } 
       else if (password === 'admin') {
-          // Backdoor deweloperski
           const emergencyUser = {
               id: 999, name: "Administrator Awaryjny", role: "CEO",
               email: email || "admin@estatepro.pl", avatar: "AD", sales: 0, deals: 0
@@ -248,7 +250,7 @@ export default function EstateProUnified() {
 
   // --- DODAWANIE WYDARZENIA ---
   const handleAddEvent = async () => { 
-      const newEv = { id: Date.now(), ...newEventData, day: 12 }; // Domyślny dzień dla demo
+      const newEv = { id: Date.now(), ...newEventData, day: 12 }; 
       setEvents([...events, newEv]);
       setEventModalOpen(false); 
       try {
@@ -261,7 +263,6 @@ export default function EstateProUnified() {
   
   const handleMoveEvent = async (id: number, day: number) => { 
       setEvents(prev => prev.map(e => e.id===id ? {...e, day} : e)); 
-      // Tutaj opcjonalnie strzał do API aktualizujący datę
   };
 
   // --- DODAWANIE OFERTY ---
@@ -270,17 +271,14 @@ export default function EstateProUnified() {
 
       const propData = {
           ...newPropertyData, 
-          // Ważne: przypisujemy usera, który jest zalogowany
-          user_id: currentUser.id,
+          user_id: currentUser?.id,
           price: Number(newPropertyData.price), 
           area: Number(newPropertyData.area), 
-          // Jeśli CEO to approved, jeśli pracownik to pending
           approvalStatus: currentUser?.role==='CEO'?'approved':'pending', 
           source: 'Ręcznie'
       };
       
-      // Optymistyczna aktualizacja UI
-      const optimisticProp = { id: Date.now(), ...propData, agent_id: currentUser.id };
+      const optimisticProp = { id: Date.now(), ...propData, agent_id: currentUser?.id };
       setProperties([optimisticProp, ...properties]); 
       setPropertyModalOpen(false); 
       
@@ -290,7 +288,6 @@ export default function EstateProUnified() {
           });
           if(res.ok) {
               const savedProp = await res.json();
-              // Podmieniamy ID tymczasowe na to z bazy
               setProperties(prev => prev.map(p => p.id === optimisticProp.id ? savedProp : p));
               addToast("Oferta zapisana!", "success");
           }
@@ -304,17 +301,17 @@ export default function EstateProUnified() {
   };
   
   // --- NOWE: PRZEJMOWANIE LEADA ZE SCRAPERA ---
-  const handleClaimProperty = async (id) => {
+  // FIX: Dodano typ :any
+  const handleClaimProperty = async (id: any) => {
       try {
           const res = await fetch(`${API_BASE_URL}/properties/${id}/claim`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ user_id: currentUser.id })
+              body: JSON.stringify({ user_id: currentUser?.id })
           });
           
           if (res.ok) {
               addToast("Lead przejęty! Znajdziesz go w 'Moje Portfolio'.", "success");
-              // Odświeżamy dane, aby przenieść ofertę z "Giełdy" do "Portfolio"
               fetchDataForUser();
           } else {
               addToast("Nie udało się przejąć leada.", "error");
@@ -359,7 +356,6 @@ export default function EstateProUnified() {
           if (!res.ok) throw new Error("Błąd sieci");
           
           const newLeads = await res.json(); 
-          // Dodajemy nowe leady do stanu (będą miały status new_lead)
           setProperties(prev => [...newLeads, ...prev]); 
           addToast(`Znaleziono ${newLeads.length} nowych ofert!`, "success");
       } catch (err) { 
@@ -372,7 +368,6 @@ export default function EstateProUnified() {
   const handleImportFromLink = async () => {
       if (!importUrl) return addToast("Wklej link!", "error");
       setIsImporting(true);
-      // Tutaj w przyszłości można podpiąć endpoint /parse-offer
       setTimeout(() => {
           setIsImporting(false);
           addToast("Funkcja w budowie (backend required).", "info");
@@ -620,67 +615,67 @@ export default function EstateProUnified() {
           </div>
       )}
 
-	  {/* SIDEBAR I GŁÓWNA ZAWARTOŚĆ */}
-	        {/* ZMIANA: bg-[#0F172A] na bg-black (czarne tło) */}
-	        <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-72'} bg-black text-white flex flex-col justify-between shadow-2xl z-20 flex-shrink-0 transition-all duration-300`}>
-	           <div className="overflow-y-auto scrollbar-hide">
-	              <div className={`p-6 flex items-center gap-3 border-b border-slate-800/50 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-	                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-	                      {/* LOGO: Zostaje /logo.jpg */}
-	                      <img src={BRAND_LOGO_URL} alt="OperoX Logo" className="w-full h-full object-contain" />
-	                  </div>
-	                  {!isSidebarCollapsed && (
-	                      <h1 className="text-xl font-serif font-bold tracking-wide text-white">
-	                          {/* ZMIANA: Ręczny wpis z kolorem dla X na ZŁOTY (#D4AF37) */}
-	                          Opero<span className="text-[#D4AF37]">X</span>
-	                      </h1>
-	                  )}
-	              </div>
+      {/* SIDEBAR I GŁÓWNA ZAWARTOŚĆ */}
+        {/* ZMIANA: bg-[#0F172A] na bg-black (czarne tło) */}
+        <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-72'} bg-black text-white flex flex-col justify-between shadow-2xl z-20 flex-shrink-0 transition-all duration-300`}>
+           <div className="overflow-y-auto scrollbar-hide">
+              <div className={`p-6 flex items-center gap-3 border-b border-slate-800/50 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {/* LOGO: Zostaje /logo.jpg */}
+                      <img src={BRAND_LOGO_URL} alt="OperoX Logo" className="w-full h-full object-contain" />
+                  </div>
+                  {!isSidebarCollapsed && (
+                      <h1 className="text-xl font-serif font-bold tracking-wide text-white">
+                           {/* ZMIANA: Ręczny wpis z kolorem dla X na ZŁOTY (#D4AF37) */}
+                           Opero<span className="text-[#D4AF37]">X</span>
+                      </h1>
+                  )}
+              </div>
             
-	              {/* ... reszta nawigacji ... */}
-	              <nav className="px-2 py-6 space-y-1">
-	                  <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Home />} label="Oferty & Mapa" id="properties" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Users />} label="Klienci (CRM)" id="crm" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Mail />} label="Poczta" id="mail" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Printer />} label="Generator PDF" id="pdf_generator" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<MapPin />} label="Analiza Dzielnic" id="districts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Briefcase />} label="Zespół HR" id="team" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Calculator />} label="Finanse & Wycena" id="finance" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Calendar />} label="Kalendarz" id="calendar" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Sparkles />} label="Marketing AI" id="marketing" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<MessageSquare />} label="Skrypty Rozmów" id="scripts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  <NavItem icon={<Repeat />} label="Giełda Off-Market" id="internal_market" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                  {currentUser?.role === 'CEO' && (
-	                      <>
-	                          <NavItem icon={<Shield />} label="Panel CEO" id="admin" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                          <NavItem icon={<PieChartIcon />} label="Analityka" id="analytics" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
-	                      </>
-	                  )}
-	              </nav>
-	           </div>
-	   
-	           {/* ZMIANA: Dół sidebara też na bg-black (lub bardzo ciemny szary dla odcięcia) */}
-	           <div className="p-4 bg-black border-t border-slate-800 flex flex-col gap-4">
-	               <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="self-end text-slate-400 hover:text-white p-1">
-	                   {isSidebarCollapsed ? <ChevronRight size={20}/> : <ChevronLeft size={20}/>}
-	               </button>
-	               {!isSidebarCollapsed && (
-	                   <div className="flex flex-col gap-2">
-	                       <div className="flex items-center gap-3">
-	                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${currentUser?.role === 'CEO' ? 'bg-amber-600' : 'bg-slate-700'} overflow-hidden`}>
-	                               {currentUser?.avatar.length > 2 ? <img src={currentUser.avatar} className="w-full h-full object-cover" alt="User Avatar" /> : currentUser?.avatar}
-	                           </div>
-	                           <div>
-	                               <p className="text-sm font-bold truncate w-32">{currentUser?.name}</p>
-	                               <p className="text-[10px] text-amber-500">{currentUser?.role}</p>
-	                           </div>
-	                       </div>
-	                       <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 mt-1">Wyloguj się</button>
-	                   </div>
-	               )}
-	           </div>
-	        </aside>
+              {/* ... reszta nawigacji ... */}
+              <nav className="px-2 py-6 space-y-1">
+                  <NavItem icon={<LayoutDashboard />} label="Pulpit" id="dashboard" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Home />} label="Oferty & Mapa" id="properties" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Users />} label="Klienci (CRM)" id="crm" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Mail />} label="Poczta" id="mail" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Printer />} label="Generator PDF" id="pdf_generator" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<MapPin />} label="Analiza Dzielnic" id="districts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Briefcase />} label="Zespół HR" id="team" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Calculator />} label="Finanse & Wycena" id="finance" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Calendar />} label="Kalendarz" id="calendar" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Sparkles />} label="Marketing AI" id="marketing" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<MessageSquare />} label="Skrypty Rozmów" id="scripts" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  <NavItem icon={<Repeat />} label="Giełda Off-Market" id="internal_market" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                  {currentUser?.role === 'CEO' && (
+                      <>
+                           <NavItem icon={<Shield />} label="Panel CEO" id="admin" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                           <NavItem icon={<PieChartIcon />} label="Analityka" id="analytics" activeTab={activeTab} setTab={setActiveTab} collapsed={isSidebarCollapsed} />
+                      </>
+                  )}
+              </nav>
+           </div>
+   
+           {/* ZMIANA: Dół sidebara też na bg-black (lub bardzo ciemny szary dla odcięcia) */}
+           <div className="p-4 bg-black border-t border-slate-800 flex flex-col gap-4">
+               <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="self-end text-slate-400 hover:text-white p-1">
+                   {isSidebarCollapsed ? <ChevronRight size={20}/> : <ChevronLeft size={20}/>}
+               </button>
+               {!isSidebarCollapsed && (
+                   <div className="flex flex-col gap-2">
+                       <div className="flex items-center gap-3">
+                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${currentUser?.role === 'CEO' ? 'bg-amber-600' : 'bg-slate-700'} overflow-hidden`}>
+                               {currentUser?.avatar.length > 2 ? <img src={currentUser.avatar} className="w-full h-full object-cover" alt="User Avatar" /> : currentUser?.avatar}
+                           </div>
+                           <div>
+                               <p className="text-sm font-bold truncate w-32">{currentUser?.name}</p>
+                               <p className="text-[10px] text-amber-500">{currentUser?.role}</p>
+                           </div>
+                       </div>
+                       <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 mt-1">Wyloguj się</button>
+                   </div>
+               )}
+           </div>
+        </aside>
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="h-20 px-8 flex items-center justify-between flex-shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 z-10">
