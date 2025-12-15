@@ -119,7 +119,7 @@ export default function EstateProUnified() {
   const fetchDataForUser = async () => {
       try {
           // Pobieramy oferty dedykowane dla użytkownika (backend filtruje po user_id)
-          const propRes = await fetch(`${API_BASE_URL}/properties?user_id=${currentUser?.id || ''}`);
+       const propRes = await fetch(`${API_BASE_URL}/properties?user_id=${(currentUser as any)?.id || ''}`);
           if (propRes.ok) {
               const propData = await propRes.json();
               setProperties(propData);
