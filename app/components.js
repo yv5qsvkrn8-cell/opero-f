@@ -503,7 +503,36 @@ export const InternalMarketView = ({ ads, setAds, user, addToast }) => {
 };
 
 // --- 9. WIDOK: ANALITYKA ---
-export const AnalyticsView = () => ( <div className={S.layout.gridContainer}><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className={S.card.base}><h3 className={S.text.title + " mb-4"}>Skuteczność Źródeł</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={SOURCE_STATS}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" /><YAxis /><Tooltip /><Bar dataKey="leads" fill="#f59e0b" radius={[4,4,0,0]} /></BarChart></ResponsiveContainer></div></div></div></div> );
+// --- 9. WIDOK: ANALITYKA ---
+export const AnalyticsView = () => { 
+    // OSTATECZNE ZABEZPIECZENIE: Sprawdzamy, czy SOURCE_STATS jest tablicą i ma elementy
+    const safeSourceStats = Array.isArray(SOURCE_STATS) ? SOURCE_STATS : [];
+    
+    return (
+        <div className={S.layout.gridContainer}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className={S.card.base}>
+                    <h3 className={S.text.title + " mb-4"}>Skuteczność Źródeł</h3>
+                    <div className="h-64">
+                        {safeSourceStats.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={safeSourceStats}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="leads" fill="#f59e0b" radius={[4,4,0,0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-slate-400">Brak statystyk źródeł.</div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // --- 10. WIDOK: DASHBOARD (PEŁNY, LIVE DATA + NOWE STYLE) ---
 export const DashboardView = ({ properties, announcements, leads, events, currentUser }) => { 
