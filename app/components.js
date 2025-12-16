@@ -1,8 +1,7 @@
-// KOD components.js (WERSJA Z MAKSYMALNYMI ZABEZPIECZENIAMI)
 "use client";
 
 /* ==========================================================================================
-   PLIK: components.js (v96.2 - FINALNY FIX AWARII FRONTENDU)
+   PLIK: components.js (v96.3 - MAKSYMALNE ZABEZPIECZENIA FRONTENDU)
    ========================================================================================== */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -114,6 +113,9 @@ const QuickCreditCalc = ({ price }) => {
 
 // --- 1. WIDOK: NIERUCHOMOŚCI ---
 export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, searchTerm, openAddModal, addToast, onRevealPhone, filters, setFilters, showFilters, setShowFilters, onScrape, isScraping }) => {
+    // ZABEZPIECZENIE: Tworzymy bezpieczną tablicę
+    const safeProperties = properties && Array.isArray(properties) ? properties : [];
+
     const [viewMode, setViewMode] = useState('list');
     const [activeSubTab, setActiveSubTab] = useState('portfolio'); 
     const [openCalcId, setOpenCalcId] = useState(null);
@@ -135,9 +137,7 @@ export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, se
     );
 
     const filtered = useMemo(() => {
-        // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
-        const safeProperties = properties && Array.isArray(properties) ? properties : [];
-        
+        // Używamy safeProperties, aby filtrowanie było bezpieczne
         let baseProps = activeSubTab === 'portfolio' ? safeProperties.filter(p => p.approvalStatus !== 'new_lead') : safeProperties.filter(p => p.approvalStatus === 'new_lead');
         return baseProps.filter(p => {
             const term = searchTerm.toLowerCase();
@@ -163,7 +163,7 @@ export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, se
                     <button onClick={() => setActiveSubTab('portfolio')} className={`text-lg font-bold pb-2 transition border-b-2 px-2 flex items-center gap-2 ${activeSubTab === 'portfolio' ? 'text-[#0F172A] border-amber-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}>{currentUser.role === 'CEO' ? 'Wszystkie Oferty' : 'Moje Portfolio'}</button>
                     <button onClick={() => setActiveSubTab('marketplace')} className={`text-lg font-bold pb-2 transition border-b-2 px-2 flex items-center gap-2 ${activeSubTab === 'marketplace' ? 'text-[#0F172A] border-amber-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}>
                         <DownloadCloud size={20}/> Giełda Leadów
-                        {properties.filter(p => p.approvalStatus === 'new_lead').length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">{properties.filter(p => p.approvalStatus === 'new_lead').length}</span>}
+                        {safeProperties.filter(p => p.approvalStatus === 'new_lead').length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">{safeProperties.filter(p => p.approvalStatus === 'new_lead').length}</span>}
                     </button>
                 </div>
                 <div className="flex gap-3 flex-wrap items-center">
@@ -276,7 +276,7 @@ export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, se
 
 // --- 2. CRM VIEW ---
 export const CrmView = ({ leads, setLeads, addToast, crmSearchTerm, setCrmSearchTerm, setCrmModalOpen }) => {
-    // Zabezpieczenie przed błędem, jeśli leads jest null/undefined
+    // ZABEZPIECZENIE: Tworzymy bezpieczną tablicę
     const safeLeads = leads && Array.isArray(leads) ? leads : [];
     
     const filteredLeads = safeLeads.filter(lead => lead.name.toLowerCase().includes(crmSearchTerm.toLowerCase()) || String(lead.id).includes(crmSearchTerm) || lead.phone.includes(crmSearchTerm));
@@ -295,7 +295,7 @@ export const CrmView = ({ leads, setLeads, addToast, crmSearchTerm, setCrmSearch
 
 // --- 3. WIDOK: KALENDARZ (DRAG & DROP) ---
 export const CalendarView = ({ events, openAddEvent, onMoveEvent }) => { 
-    // Zabezpieczenie przed błędem, jeśli events jest null/undefined
+    // ZABEZPIECZENIE: Tworzymy bezpieczną tablicę
     const safeEvents = events && Array.isArray(events) ? events : [];
     
     const handleDragStart = (e, eventId) => { e.dataTransfer.setData("eventId", eventId); }; 
@@ -311,6 +311,7 @@ export const CalendarView = ({ events, openAddEvent, onMoveEvent }) => {
                 <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">{['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'].map(day => (<div key={day} className="p-3 text-center text-xs font-bold text-slate-500 uppercase">{day}</div>))}</div>
                 <div className="grid grid-cols-7 grid-rows-5 flex-1 bg-slate-100 gap-px border-b border-l border-slate-200">
                     {Array.from({length: 31}, (_, i) => i + 1).map(day => { 
+                        // Używamy safeEvents
                         const dayEvents = safeEvents.filter(e => e.day === day); 
                         return (
                             <div key={day} onDragOver={e=>e.preventDefault()} onDrop={(e) => handleDrop(e, day)} className={`bg-white min-h-[100px] p-2 relative group hover:bg-slate-50 transition-colors ${day === 12 ? 'bg-blue-50/30' : ''}`}>
@@ -352,6 +353,9 @@ export const TeamView = ({ users, openAddModal, currentUser }) => {
 
 // --- 5. WIDOK: FINANSE & WYCENA (POPRAWIONY - KOMPLETNY) ---
 export const FinanceView = ({ properties }) => { 
+    // ZABEZPIECZENIE
+    const safeProperties = properties && Array.isArray(properties) ? properties : [];
+
     // Stan dla Wyceny
     const [formData, setFormData] = useState({ district: 'Gdańsk Wrzeszcz', area: 50, rooms: 2, floor: 1, totalFloors: 4, year: 2000, standard: 'normal', balcony: false, elevator: false, parking: false, storage: false, garden: false }); 
     const [valuation, setValuation] = useState(null); 
@@ -468,7 +472,7 @@ export const FinanceView = ({ properties }) => {
 
 // --- 6. WIDOK: MARKETING AI ---
 export const MarketingAIView = ({ properties }) => { 
-    // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
+    // ZABEZPIECZENIE
     const safeProperties = properties && Array.isArray(properties) ? properties : [];
     
     const [isGenerating, setIsGenerating] = useState(false); 
@@ -736,7 +740,7 @@ export const DistrictAnalysisView = () => {
 
 // --- 14. WIDOK: GENERATOR OFERT PDF (PEŁNA LOGIKA) ---
 export const PdfGeneratorView = ({ properties, users, currentUser }) => { 
-    // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
+    // ZABEZPIECZENIE
     const safeProperties = properties && Array.isArray(properties) ? properties : [];
 
     const [selectedProps, setSelectedProps] = useState([]);
