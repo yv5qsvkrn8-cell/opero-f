@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: components.js (v96.0 - PEŁNA LOGIKA + REFACTOR STYLI)
+   PLIK: components.js (v96.1 - FIX AWARII FRONTENDU PRZY PUSTYCH DANYCH)
    ========================================================================================== */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -497,25 +497,30 @@ export const DashboardView = ({ properties, announcements, leads, events, curren
     // 1. OBLICZENIA NA ŻYWO (REAL-TIME DATA)
     const totalPortfolio = properties.reduce((acc, curr) => acc + curr.price, 0); 
     const potentialCommission = totalPortfolio * 0.025; // Zakładamy 2.5% prowizji
-    const activeLeads = leads.length; 
+    
+    // START ZABEZPIECZENIA PRZED BŁĘDEM e.reduce IS NOT A FUNCTION
+    // Zapewniamy, że leads jest zawsze tablicą
+    const safeLeads = leads && Array.isArray(leads) ? leads : [];
+    const activeLeads = safeLeads.length; 
     
     // Obliczanie źródeł leadów dynamicznie dla wykresu
     const leadsSourceData = useMemo(() => {
         const counts = {};
-        leads.forEach(l => {
+        safeLeads.forEach(l => {
             const src = l.source || 'Inne';
             counts[src] = (counts[src] || 0) + 1;
         });
         return Object.keys(counts).map(key => ({ name: key, value: counts[key] }));
-    }, [leads]);
-
+    }, [safeLeads]);
+    // KONIEC ZABEZPIECZENIA
+    
     // Najbliższe spotkania (posortowane po dniu)
     const upcomingEvents = [...events]
         .sort((a, b) => a.day - b.day)
         .slice(0, 3);
 
-    // Ostatni klienci (odwrócona lista)
-    const recentLeads = [...leads].reverse().slice(0, 4);
+    // Ostatni klienci (używamy bezpiecznej listy)
+    const recentLeads = [...safeLeads].reverse().slice(0, 4);
 
     return (
         <div className={S.layout.gridContainer}>
