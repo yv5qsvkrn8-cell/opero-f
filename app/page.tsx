@@ -1,7 +1,7 @@
 "use client";
 
 /* ===========================================================================================
-   PLIK: page.tsx (v100.2 - FINAL FIX - BEZWZGLĘDNE ZABEZPIECZENIE INICJALIZACJI STANU)
+   PLIK: page.tsx (v100.3 - OSTATECZNE OMIJANI BŁĘDU STARTOWEGO)
    =========================================================================================== */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -41,7 +41,7 @@ const API_KEY = 'YOUR_SECRET_API_KEY';
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
-  // ZMIANA KLUCZOWA: Inicjalizacja DANYMI TESTOWYMI, a nie pustymi tablicami
+  // Inicjalizacja DANYMI TESTOWYMI (Zabezpieczenie przed pustą bazą)
   const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES as any);
   const [users, setUsers] = useState<User[]>(USERS as any);
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS as any);
@@ -50,7 +50,9 @@ export default function Home() {
   const [internalAds, setInternalAds] = useState(INTERNAL_MARKET_ADS);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // *** KLUCZOWA ZMIANA: WYMUSZAMY START NA WIDOKU 'properties' ***
+  const [activeTab, setActiveTab] = useState('properties'); 
+
   const [isLoading, setIsLoading] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
 
