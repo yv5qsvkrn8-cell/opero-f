@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: components.js (v96.5 - OSTATECZNA WERSJA - PODWÓJNE ZABEZPIECZENIE WYKRESÓW)
+   PLIK: components.js (v96.7 - OSTATECZNA WERSJA - PEŁNE ZABEZPIECZENIE USEMEMO)
    ========================================================================================== */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -503,7 +503,6 @@ export const InternalMarketView = ({ ads, setAds, user, addToast }) => {
 };
 
 // --- 9. WIDOK: ANALITYKA ---
-// --- 9. WIDOK: ANALITYKA ---
 export const AnalyticsView = () => { 
     // OSTATECZNE ZABEZPIECZENIE: Sprawdzamy, czy SOURCE_STATS jest tablicą i ma elementy
     const safeSourceStats = Array.isArray(SOURCE_STATS) ? SOURCE_STATS : [];
@@ -547,8 +546,13 @@ export const DashboardView = ({ properties, announcements, leads, events, curren
     const potentialCommission = totalPortfolio * 0.025; // Zakładamy 2.5% prowizji
     const activeLeads = safeLeads.length; 
     
-    // Obliczanie źródeł leadów dynamicznie dla wykresu
+    // Obliczanie źródeł leadów dynamicznie dla wykresu (NOWA, WZMOCNIONA LOGIKA USEMEMO)
     const leadsSourceData = useMemo(() => {
+        // Potrójne zabezpieczenie: jeśli safeLeads jest null/undefined/nie-tablicą, zwraca pustą tablicę
+        if (!Array.isArray(safeLeads) || safeLeads.length === 0) {
+            return [];
+        }
+
         const counts = {};
         safeLeads.forEach(l => {
             const src = l.source || 'Inne';
