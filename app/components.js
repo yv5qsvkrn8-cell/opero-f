@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: components.js (v96.3 - MAKSYMALNE ZABEZPIECZENIA FRONTENDU)
+   PLIK: components.js (v96.4 - OSTATECZNY FIX BŁĘDÓW RENDEROWANIA WYKRESÓW)
    ========================================================================================== */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -353,9 +353,6 @@ export const TeamView = ({ users, openAddModal, currentUser }) => {
 
 // --- 5. WIDOK: FINANSE & WYCENA (POPRAWIONY - KOMPLETNY) ---
 export const FinanceView = ({ properties }) => { 
-    // ZABEZPIECZENIE
-    const safeProperties = properties && Array.isArray(properties) ? properties : [];
-
     // Stan dla Wyceny
     const [formData, setFormData] = useState({ district: 'Gdańsk Wrzeszcz', area: 50, rooms: 2, floor: 1, totalFloors: 4, year: 2000, standard: 'normal', balcony: false, elevator: false, parking: false, storage: false, garden: false }); 
     const [valuation, setValuation] = useState(null); 
@@ -637,17 +634,21 @@ export const DashboardView = ({ properties, announcements, leads, events, curren
                         <h3 className={S.text.title}>Skąd przychodzą klienci?</h3>
                         <select className="text-xs border rounded p-1 text-slate-500 bg-slate-50"><option>Ten miesiąc</option></select>
                     </div>
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={leadsSourceData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border:'none', boxShadow:'0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                                {/* Używamy koloru złotego/amber dla słupków */}
-                                <Bar dataKey="value" fill="#d97706" radius={[4, 4, 0, 0]} barSize={40} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                    <div className="h-64 w-full flex items-center justify-center">
+                        {leadsSourceData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={leadsSourceData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                                    <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border:'none', boxShadow:'0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                                    {/* Używamy koloru złotego/amber dla słupków */}
+                                    <Bar dataKey="value" fill="#d97706" radius={[4, 4, 0, 0]} barSize={40} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-slate-400">Brak danych do wygenerowania wykresu.</p>
+                        )}
                     </div>
                 </div>
 
@@ -732,7 +733,11 @@ export const DistrictAnalysisView = () => {
       <div className={`${S.card.base} flex-1 overflow-y-auto`}>
           <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">{selectedDistrict.name}</h2>
           <p className="text-slate-600 mb-8 italic">"{selectedDistrict.desc}"</p>
-          <div className="h-[300px] w-full"><ResponsiveContainer width="100%" height="100%"><RadarChart cx="50%" cy="50%" outerRadius="80%" data={selectedDistrict.stats}><PolarGrid stroke="#e2e8f0" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} /><PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} /><RechartsRadar name={selectedDistrict.name} dataKey="A" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.5} /><Tooltip/></RadarChart></ResponsiveContainer></div>
+          {selectedDistrict.stats.length > 0 ? (
+            <div className="h-[300px] w-full"><ResponsiveContainer width="100%" height="100%"><RadarChart cx="50%" cy="50%" outerRadius="80%" data={selectedDistrict.stats}><PolarGrid stroke="#e2e8f0" /><PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} /><PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} /><RechartsRadar name={selectedDistrict.name} dataKey="A" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.5} /><Tooltip/></RadarChart></ResponsiveContainer></div>
+          ) : (
+             <div className="h-[300px] w-full flex items-center justify-center text-slate-400">Brak danych do analizy dzielnicy.</div>
+          )}
       </div>
     </div>
   );
