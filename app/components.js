@@ -1,7 +1,7 @@
 "use client";
 
 /* ==========================================================================================
-   PLIK: components.js (v96.1 - FIX AWARII FRONTENDU PRZY PUSTYCH DANYCH)
+   PLIK: components.js (v96.2 - FINALNY FIX AWARII FRONTENDU)
    ========================================================================================== */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -467,7 +467,7 @@ export const MarketingAIView = ({ properties }) => {
                 <h3 className={S.text.title + " mb-6"}>Generator Opisów AI</h3>
                 <button onClick={handleGen} disabled={isGenerating} className={S.button.gold + " w-full justify-center"}>{isGenerating ? <Loader2 className="animate-spin"/> : <Wand2/>} Generuj Opis</button>
             </div>
-            <div className="bg-slate-100 p-8 rounded-xl relative"><textarea className="w-full h-full min-h-[300px] bg-transparent resize-none outline-none text-slate-700" value={text} placeholder="Tutaj pojawi się opis..." readOnly></textarea></div>
+            <div className="bg-slate-100 p-8 rounded-xl relative"><textarea className={S.input.base + " h-24 resize-none"} placeholder="Tutaj pojawi się opis..." readOnly></textarea></div>
         </div>
     ); 
 };
@@ -494,13 +494,14 @@ export const AnalyticsView = () => ( <div className={S.layout.gridContainer}><di
 // --- 10. WIDOK: DASHBOARD (PEŁNY, LIVE DATA + NOWE STYLE) ---
 export const DashboardView = ({ properties, announcements, leads, events, currentUser }) => { 
     
-    // 1. OBLICZENIA NA ŻYWO (REAL-TIME DATA)
-    const totalPortfolio = properties.reduce((acc, curr) => acc + curr.price, 0); 
-    const potentialCommission = totalPortfolio * 0.025; // Zakładamy 2.5% prowizji
-    
-    // START ZABEZPIECZENIA PRZED BŁĘDEM e.reduce IS NOT A FUNCTION
-    // Zapewniamy, że leads jest zawsze tablicą
+    // ZABEZPIECZENIE: Upewniamy się, że leads, events i properties są zawsze tablicami
+    const safeProperties = properties && Array.isArray(properties) ? properties : [];
     const safeLeads = leads && Array.isArray(leads) ? leads : [];
+    const safeEvents = events && Array.isArray(events) ? events : [];
+
+    // 1. OBLICZENIA NA ŻYWO (REAL-TIME DATA)
+    const totalPortfolio = safeProperties.reduce((acc, curr) => acc + curr.price, 0); 
+    const potentialCommission = totalPortfolio * 0.025; // Zakładamy 2.5% prowizji
     const activeLeads = safeLeads.length; 
     
     // Obliczanie źródeł leadów dynamicznie dla wykresu
@@ -512,10 +513,9 @@ export const DashboardView = ({ properties, announcements, leads, events, curren
         });
         return Object.keys(counts).map(key => ({ name: key, value: counts[key] }));
     }, [safeLeads]);
-    // KONIEC ZABEZPIECZENIA
     
     // Najbliższe spotkania (posortowane po dniu)
-    const upcomingEvents = [...events]
+    const upcomingEvents = [...safeEvents]
         .sort((a, b) => a.day - b.day)
         .slice(0, 3);
 
@@ -548,7 +548,7 @@ export const DashboardView = ({ properties, announcements, leads, events, curren
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-6">
                     <div>
                         <h2 className="text-3xl font-bold mb-2 text-white">Cześć, {currentUser.name.split(' ')[0]}! 👋</h2>
-                        <p className="text-slate-400">Twoje portfolio wygląda imponująco. Masz <span className="text-[#D4AF37] font-bold">{properties.length}</span> aktywnych ofert.</p>
+                        <p className="text-slate-400">Twoje portfolio wygląda imponująco. Masz <span className="text-[#D4AF37] font-bold">{safeProperties.length}</span> aktywnych ofert.</p>
                         
                         {/* Pasek Celu */}
                         <div className="mt-6 max-w-md">
@@ -760,7 +760,7 @@ export const PdfGeneratorView = ({ properties, users, currentUser }) => {
                         <div className="text-right"><p className="text-sm font-bold text-amber-500">{new Date().toLocaleDateString()}</p></div>
                     </div>
                     <div className="px-10 py-8"><h2 className="text-3xl font-serif font-bold text-slate-800 mb-4">{pdfData.clientName}</h2><p className="text-slate-600 text-sm italic">"{pdfData.introText}"</p></div>
-                    <div className="flex-1 px-10 pb-8"><div className="grid grid-cols-2 gap-8">{selectedProps.map(id => { const p = properties.find(x => x.id === id); return p ? (<div key={p.id}><div className="h-48 w-full bg-slate-100 rounded-sm overflow-hidden mb-3"><img src={p.image} className="w-full h-full object-cover"/></div><h3 className="font-bold text-slate-800 text-sm">{p.title}</h3><p className="text-amber-600 font-bold">{p.price.toLocaleString()} PLN</p></div>) : null; })}</div></div>
+                    <div className="flex-1 px-10 pb-8"><div className="grid grid-cols-2 gap-8">{properties.map(p => { const pData = properties.find(x => x.id === p.id); return pData ? (<div key={pData.id}><div className="h-48 w-full bg-slate-100 rounded-sm overflow-hidden mb-3"><img src={pData.image} className="w-full h-full object-cover"/></div><h3 className="font-bold text-slate-800 text-sm">{pData.title}</h3><p className="text-amber-600 font-bold">{pData.price.toLocaleString()} PLN</p></div>) : null; })}</div></div>
                     <div className="bg-slate-50 px-10 py-6 border-t border-slate-200 mt-auto flex justify-between items-center"><div><p className="font-bold text-slate-800">{selectedAgent.name}</p><p className="text-xs text-amber-600">{selectedAgent.phone}</p></div><div className="text-right text-[10px] text-slate-400"><p>{BRAND_NAME}</p><p>www.operox.pl</p></div></div>
                 </div>
             </div>
