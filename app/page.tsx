@@ -1,7 +1,7 @@
 "use client";
 
 /* ===========================================================================================
-   PLIK: page.tsx (v100.1 - FINAL FIX - ZABEZPIECZENIE PRZED PUSTĄ BAZĄ DANYCH)
+   PLIK: page.tsx (v100.2 - FINAL FIX - BEZWZGLĘDNE ZABEZPIECZENIE INICJALIZACJI STANU)
    =========================================================================================== */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -25,25 +25,28 @@ import {
 import { S } from './styles'; // Zakładamy import S ze styles.js
 
 // TYPY (Uproszczone do celów demonstracyjnych)
-type User = { id: number; email: string; name: string; role: string; password?: string; avatar: string }; // Dodano password i avatar
-type Property = { id: number; title: string; price: number; area: number; status: string; user_id?: number; approvalStatus?: string; phone?: string; revealedPhone?: boolean; }; // Uproszczone
-type Lead = { id: number; name: string; source: string; type: string; status: string; revealed: boolean; phone: string; }; // Uproszczone
-type Event = { id: number; title: string; day: number; time: string; }; // Uproszczone
-type Announcement = { id: number; text: string; priority: 'urgent' | 'normal'; author: string; }; // Uproszczone
+type User = { id: number; email: string; name: string; role: string; password?: string; avatar: string }; 
+type Property = { id: number; title: string; price: number; area: number; status: string; user_id?: number; approvalStatus?: string; phone?: string; revealedPhone?: boolean; };
+type Lead = { id: number; name: string; source: string; type: string; status: string; revealed: boolean; phone: string; };
+type Event = { id: number; title: string; day: number; time: string; }; 
+type Announcement = { id: number; text: string; priority: 'urgent' | 'normal'; author: string; }; 
 
 // PORT BACKENDOWY (Render)
 const API_BASE_URL = 'https://operox-backend.onrender.com/api'; 
 const SCRAPE_API_URL = 'https://operox-backend.onrender.com/api/scrape_data'; 
-const API_KEY = 'YOUR_SECRET_API_KEY'; // Klucz do autoryzacji
+const API_KEY = 'YOUR_SECRET_API_KEY'; 
 
 // --- STATE UI I FORMS (Rozdzielone) ---
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [properties, setProperties] = useState<Property[]>([]);
+  
+  // ZMIANA KLUCZOWA: Inicjalizacja DANYMI TESTOWYMI, a nie pustymi tablicami
+  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES as any);
   const [users, setUsers] = useState<User[]>(USERS as any);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS as any);
+  const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS as any);
+
   const [internalAds, setInternalAds] = useState(INTERNAL_MARKET_ADS);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
@@ -72,7 +75,7 @@ export default function Home() {
     setTimeout(() => setToast(null), 4000);
   }, []);
   
-  // --- FUNKCJA POBIERANIA DANYCH (OSTATECZNIE ZABEZPIECZONA) ---
+  // --- FUNKCJA POBIERANIA DANYCH (ZABEZPIECZONA) ---
   const fetchDataForUser = useCallback(async () => {
     if (!currentUser) return;
     setIsLoading(true);
@@ -85,8 +88,12 @@ export default function Home() {
         let propData: Property[] = [];
         if (propRes.ok) { propData = await propRes.json(); }
         
-        // ZABEZPIECZENIE PROPERTIES: Jeśli API zwróciło puste dane (pusta baza), użyj DANYCH LOKALNYCH
-        setProperties(Array.isArray(propData) && propData.length > 0 ? propData : INITIAL_PROPERTIES as any);
+        // ZABEZPIECZENIE PROPERTIES: Aktualizuj tylko jeśli są poprawne i niepuste dane z API
+        if (Array.isArray(propData) && propData.length > 0) {
+            setProperties(propData);
+        } else {
+             // Jeśli API puste, zostawiamy dane testowe z INITIAL_PROPERTIES (które są w useState)
+        }
 
 
         // 2. POBIERANIE DANYCH INICJALNYCH (Users, Leads, Events)
@@ -95,14 +102,14 @@ export default function Home() {
         });
         const initData = await initRes.json();
         
-        // ZABEZPIECZENIE USERS (używamy USERS z store.js jako fallback)
+        // Aktualizacja USERS (z fallbackiem)
         if (initData.users && Array.isArray(initData.users) && initData.users.length > 0) setUsers(initData.users);
 
-        // ZABEZPIECZENIE LEADS:
-        setLeads(Array.isArray(initData.leads) && initData.leads.length > 0 ? initData.leads : INITIAL_LEADS as any);
+        // Aktualizacja LEADS:
+        if (Array.isArray(initData.leads) && initData.leads.length > 0) setLeads(initData.leads);
         
-        // ZABEZPIECZENIE EVENTS:
-        setEvents(Array.isArray(initData.events) && initData.events.length > 0 ? initData.events : INITIAL_EVENTS as any);
+        // Aktualizacja EVENTS:
+        if (Array.isArray(initData.events) && initData.events.length > 0) setEvents(initData.events);
 
         // Wczytanie ogłoszeń (jeśli są)
         if (initData.announcements) setAnnouncements(initData.announcements);
@@ -110,11 +117,7 @@ export default function Home() {
 
     } catch (err) {
         console.error("Błąd pobierania danych:", err);
-        // Ostateczne awaryjne użycie DANYCH LOKALNYCH w przypadku błędu połączenia (Backend Down)
-        setProperties(INITIAL_PROPERTIES as any);
-        setLeads(INITIAL_LEADS as any);
-        setEvents(INITIAL_EVENTS as any);
-        addToast("Tryb awaryjny: Błąd połączenia z API. Działanie na danych lokalnych (store.js).", "error");
+        addToast("Błąd połączenia z API. Działanie na danych lokalnych (store.js).", "error");
     } finally {
         setIsLoading(false);
     }
@@ -133,7 +136,6 @@ export default function Home() {
   // --- 3. LOGIKA APLIKACJI (HANDLE FUNCTIONS) ---
   
   const handleLogin = (email: string, password_candidate: string) => {
-    // Uproszczona logika dla demo: użyjemy danych z pliku store.js
     const user = users.find(u => u.email === email && u.password === password_candidate);
 
     if (user) {
@@ -160,7 +162,6 @@ export default function Home() {
   };
 
   const handleAddProperty = (newProperty: Property) => {
-    // W trybie awaryjnym dodajemy tylko lokalnie, potem to zostanie zsynchronizowane
     setProperties(prev => [...prev, newProperty]);
     setPropertyModalOpen(false);
     addToast('Nieruchomość dodana lokalnie! Użyj Importu do synchronizacji.', 'success');
@@ -169,18 +170,15 @@ export default function Home() {
   const handleClaimProperty = async (propertyId: number) => {
       if (!currentUser) return;
       
-      // Optymistyczna aktualizacja Frontendu
       setProperties(prev => prev.map(p => p.id === propertyId ? { ...p, user_id: currentUser.id, approvalStatus: 'approved' } : p));
       
       try {
-          // Wywołanie Backendu do przejęcia leada
           await fetch(`${API_BASE_URL}/properties/${propertyId}/claim`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ user_id: currentUser.id })
           });
           addToast(`Lead ID ${propertyId} przejęty!`, 'success');
-          // Restartujemy ładowanie, aby odświeżyć dane z Backendu
           fetchDataForUser();
       } catch {
           addToast("Zapisano lokalnie, błąd serwera przy przejmowaniu.", "warning");
@@ -189,16 +187,13 @@ export default function Home() {
 
 
   const handleMoveEvent = async (id: number, day: number) => { 
-      // Uproszczona logika - tylko lokalna
       setEvents(prev => prev.map(e => e.id===id ? {...e, day} : e)); 
       addToast("Wydarzenie przeniesione (zmiana lokalna).", "info");
-      // Tutaj powinna być asynchroniczna aktualizacja Backendu
   };
 
   const handleApproveProperty = (propertyId: number) => {
     setProperties(prev => prev.map(p => p.id === propertyId ? { ...p, approvalStatus: 'approved' } : p));
     addToast('Oferta zaakceptowana!', 'success');
-    // Tutaj powinna być asynchroniczna aktualizacja Backendu
   };
 
   const handleRevealPhone = async (propertyId: number, offerUrl: string) => {
@@ -223,7 +218,6 @@ export default function Home() {
     } finally {
         setIsScraping(false);
     }
-    // Jeśli się nie udało, oznaczamy, że próbowaliśmy (aby nie klikać bez końca)
     setProperties(prev => prev.map(p => p.id === propertyId ? { ...p, revealedPhone: true } : p));
     return null;
   };
@@ -233,15 +227,13 @@ export default function Home() {
       addToast(`Rozpoczynam Import! (Render Standard RAM: OK)`, "warning");
 
       try {
-          // W trybie awaryjnym (puste dane) skraper i tak powinien działać
           const res = await fetch(SCRAPE_API_URL, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ portals: ['otodom', 'olx'] }) // Minimalne portale
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ portals: ['otodom', 'olx'] })
           });
           
           if (!res.ok) throw new Error("Błąd sieci lub skrapera");
           
           const newLeads = await res.json(); 
-          // Musimy pobrać nowe dane z Backendu, bo to on je zapisał
           fetchDataForUser();
           addToast(`Znaleziono ${newLeads.length} nowych ofert!`, "success");
       } catch (err) { 
@@ -279,11 +271,27 @@ export default function Home() {
       setAnnouncements(prev => prev.filter(a => a.id !== id));
       addToast('Komunikat usunięty.', 'info');
   };
+  
+  const handleAddWatermark = () => { addToast("Logo dodane (Symulacja)", "success"); };
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (data: any) => void, data: any) => { 
+      const f = e.target.files?.[0]; 
+      if(f){ 
+          const r = new FileReader(); 
+          r.onload=()=>setter({...data, [e.target.name==='avatar'?'avatar':'image']: r.result as string}); 
+          r.readAsDataURL(f); 
+      }
+  };
+  const handleImportFromLink = () => { addToast("Funkcja w budowie (backend required).", "info"); };
 
-  // --- 4. RENDEROWANIE WARUNKOWE ---
+  // --- MODAL DATA (Uproszczone Formularze dla ModalComponent z components.js) ---
+  const [newPropertyData, setNewPropertyData] = useState<any>({});
+  const [newClientData, setNewClientData] = useState<any>({});
+  const [newEventData, setNewEventData] = useState<any>({});
+  const [newEmployeeData, setNewEmployeeData] = useState<any>({});
+
 
   // Ekran ładowania
-  if (isLoading && !currentUser) { // Wyświetlamy loader tylko przy pierwszym ładowaniu
+  if (isLoading && !currentUser) {
     return (
         <div className={S.login.wrapper}>
             <div className={S.layout.flexCenter + " h-screen w-full"}>
@@ -399,15 +407,17 @@ export default function Home() {
         </div>
       </main>
 
-      {/* --- MODALE (Uproszczona wersja z przekierowaniem do AddXModal w components.js) --- */}
+      {/* --- MODALE --- */}
 
+      {/* Wszystkie modale (AdPropertyModal, AddEventModal, AddEmployeeModal, AddLeadModal, AddAnnouncementModal) muszą być zdefiniowane w components.js */}
       <AddPropertyModal isOpen={propertyModalOpen} onClose={() => setPropertyModalOpen(false)} onSave={handleAddProperty} users={users as any} addToast={addToast} />
       <AddEventModal isOpen={eventModalOpen} onClose={() => setEventModalOpen(false)} onSave={handleAddEvent} currentUser={currentUser} addToast={addToast} />
       <AddEmployeeModal isOpen={employeeModalOpen} onClose={() => setEmployeeModalOpen(false)} onSave={handleAddEmployee} addToast={addToast} />
       <AddLeadModal isOpen={crmModalOpen} onClose={() => setCrmModalOpen(false)} onSave={handleAddLead} addToast={addToast} currentUser={currentUser} />
       <AddAnnouncementModal isOpen={announcementModalOpen} onClose={() => setAnnouncementModalOpen(false)} onSave={handleAddAnnouncement} addToast={addToast} />
       
-      {/* Toast Render */}
+      {/* Toast Render (zakładamy, że jest w components.js) */}
+      {/* Wymagane, aby dodać komponent Toast do components.js */}
       {/* Toast jest renderowany na górze komponentu */}
 
     </div>
