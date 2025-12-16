@@ -1,3 +1,4 @@
+// KOD components.js (WERSJA Z MAKSYMALNYMI ZABEZPIECZENIAMI)
 "use client";
 
 /* ==========================================================================================
@@ -134,7 +135,10 @@ export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, se
     );
 
     const filtered = useMemo(() => {
-        let baseProps = activeSubTab === 'portfolio' ? properties.filter(p => p.approvalStatus !== 'new_lead') : properties.filter(p => p.approvalStatus === 'new_lead');
+        // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
+        const safeProperties = properties && Array.isArray(properties) ? properties : [];
+        
+        let baseProps = activeSubTab === 'portfolio' ? safeProperties.filter(p => p.approvalStatus !== 'new_lead') : safeProperties.filter(p => p.approvalStatus === 'new_lead');
         return baseProps.filter(p => {
             const term = searchTerm.toLowerCase();
             const matchesSearch = p.title.toLowerCase().includes(term) || p.city.toLowerCase().includes(term) || (p.street && p.street.toLowerCase().includes(term));
@@ -272,7 +276,10 @@ export const PropertiesView = ({ properties, currentUser, onApprove, onClaim, se
 
 // --- 2. CRM VIEW ---
 export const CrmView = ({ leads, setLeads, addToast, crmSearchTerm, setCrmSearchTerm, setCrmModalOpen }) => {
-    const filteredLeads = leads.filter(lead => lead.name.toLowerCase().includes(crmSearchTerm.toLowerCase()) || String(lead.id).includes(crmSearchTerm) || lead.phone.includes(crmSearchTerm));
+    // Zabezpieczenie przed błędem, jeśli leads jest null/undefined
+    const safeLeads = leads && Array.isArray(leads) ? leads : [];
+    
+    const filteredLeads = safeLeads.filter(lead => lead.name.toLowerCase().includes(crmSearchTerm.toLowerCase()) || String(lead.id).includes(crmSearchTerm) || lead.phone.includes(crmSearchTerm));
     const toggleReveal = (id) => { setLeads(prev => prev.map(l => l.id === id ? { ...l, revealed: true } : l)); addToast("Numer odkryty.", "warning"); };
 
     return (
@@ -288,6 +295,9 @@ export const CrmView = ({ leads, setLeads, addToast, crmSearchTerm, setCrmSearch
 
 // --- 3. WIDOK: KALENDARZ (DRAG & DROP) ---
 export const CalendarView = ({ events, openAddEvent, onMoveEvent }) => { 
+    // Zabezpieczenie przed błędem, jeśli events jest null/undefined
+    const safeEvents = events && Array.isArray(events) ? events : [];
+    
     const handleDragStart = (e, eventId) => { e.dataTransfer.setData("eventId", eventId); }; 
     const handleDrop = (e, targetDay) => { e.preventDefault(); const eventId = e.dataTransfer.getData("eventId"); if (eventId) onMoveEvent(Number(eventId), targetDay); }; 
 
@@ -301,7 +311,7 @@ export const CalendarView = ({ events, openAddEvent, onMoveEvent }) => {
                 <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">{['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'].map(day => (<div key={day} className="p-3 text-center text-xs font-bold text-slate-500 uppercase">{day}</div>))}</div>
                 <div className="grid grid-cols-7 grid-rows-5 flex-1 bg-slate-100 gap-px border-b border-l border-slate-200">
                     {Array.from({length: 31}, (_, i) => i + 1).map(day => { 
-                        const dayEvents = events.filter(e => e.day === day); 
+                        const dayEvents = safeEvents.filter(e => e.day === day); 
                         return (
                             <div key={day} onDragOver={e=>e.preventDefault()} onDrop={(e) => handleDrop(e, day)} className={`bg-white min-h-[100px] p-2 relative group hover:bg-slate-50 transition-colors ${day === 12 ? 'bg-blue-50/30' : ''}`}>
                                 <span className="text-sm font-bold text-slate-400">{day}</span>
@@ -458,6 +468,9 @@ export const FinanceView = ({ properties }) => {
 
 // --- 6. WIDOK: MARKETING AI ---
 export const MarketingAIView = ({ properties }) => { 
+    // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
+    const safeProperties = properties && Array.isArray(properties) ? properties : [];
+    
     const [isGenerating, setIsGenerating] = useState(false); 
     const [text, setText] = useState(''); 
     const handleGen = () => { setIsGenerating(true); setTimeout(() => { setText(`✨ WYJĄTKOWA OFERTA ✨\n\nZapraszamy do zapoznania się z ofertą...`); setIsGenerating(false); }, 1500); } 
@@ -723,6 +736,9 @@ export const DistrictAnalysisView = () => {
 
 // --- 14. WIDOK: GENERATOR OFERT PDF (PEŁNA LOGIKA) ---
 export const PdfGeneratorView = ({ properties, users, currentUser }) => { 
+    // Zabezpieczenie przed błędem, jeśli properties jest null/undefined
+    const safeProperties = properties && Array.isArray(properties) ? properties : [];
+
     const [selectedProps, setSelectedProps] = useState([]);
     const [pdfData, setPdfData] = useState({
         clientName: 'Szanowny Panie Janie',
@@ -747,7 +763,7 @@ export const PdfGeneratorView = ({ properties, users, currentUser }) => {
                     <label className={S.text.label}>Nagłówek</label><input className={S.input.base} value={pdfData.clientName} onChange={e => setPdfData({...pdfData, clientName: e.target.value})} />
                     <label className={S.text.label}>Treść</label><textarea className={S.input.base + " h-24 resize-none"} value={pdfData.introText} onChange={e => setPdfData({...pdfData, introText: e.target.value})} />
                     <label className={S.text.label}>Wybierz Oferty ({selectedProps.length}/4)</label>
-                    <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-slate-50">{properties.map(p => (<div key={p.id} onClick={() => toggleProperty(p.id)} className={`p-3 flex items-center gap-3 cursor-pointer border-b hover:bg-white transition ${selectedProps.includes(p.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}><img src={p.image} className="w-10 h-10 object-cover rounded"/><div className="flex-1"><p className="text-xs font-bold truncate">{p.title}</p></div>{selectedProps.includes(p.id) && <Check size={16} className="text-blue-500"/>}</div>))}</div>
+                    <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-slate-50">{safeProperties.map(p => (<div key={p.id} onClick={() => toggleProperty(p.id)} className={`p-3 flex items-center gap-3 cursor-pointer border-b hover:bg-white transition ${selectedProps.includes(p.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}><img src={p.image} className="w-10 h-10 object-cover rounded"/><div className="flex-1"><p className="text-xs font-bold truncate">{p.title}</p></div>{selectedProps.includes(p.id) && <Check size={16} className="text-blue-500"/>}</div>))}</div>
                 </div>
                 <div className="p-6 border-t border-slate-100"><button onClick={handlePrint} className={S.button.primary + " w-full justify-center"}><Printer size={18}/> Drukuj / PDF</button></div>
             </div>
@@ -760,7 +776,7 @@ export const PdfGeneratorView = ({ properties, users, currentUser }) => {
                         <div className="text-right"><p className="text-sm font-bold text-amber-500">{new Date().toLocaleDateString()}</p></div>
                     </div>
                     <div className="px-10 py-8"><h2 className="text-3xl font-serif font-bold text-slate-800 mb-4">{pdfData.clientName}</h2><p className="text-slate-600 text-sm italic">"{pdfData.introText}"</p></div>
-                    <div className="flex-1 px-10 pb-8"><div className="grid grid-cols-2 gap-8">{properties.map(p => { const pData = properties.find(x => x.id === p.id); return pData ? (<div key={pData.id}><div className="h-48 w-full bg-slate-100 rounded-sm overflow-hidden mb-3"><img src={pData.image} className="w-full h-full object-cover"/></div><h3 className="font-bold text-slate-800 text-sm">{pData.title}</h3><p className="text-amber-600 font-bold">{pData.price.toLocaleString()} PLN</p></div>) : null; })}</div></div>
+                    <div className="flex-1 px-10 pb-8"><div className="grid grid-cols-2 gap-8">{selectedProps.map(id => { const pData = safeProperties.find(x => x.id === id); return pData ? (<div key={pData.id}><div className="h-48 w-full bg-slate-100 rounded-sm overflow-hidden mb-3"><img src={pData.image} className="w-full h-full object-cover"/></div><h3 className="font-bold text-slate-800 text-sm">{pData.title}</h3><p className="text-amber-600 font-bold">{pData.price.toLocaleString()} PLN</p></div>) : null; })}</div></div>
                     <div className="bg-slate-50 px-10 py-6 border-t border-slate-200 mt-auto flex justify-between items-center"><div><p className="font-bold text-slate-800">{selectedAgent.name}</p><p className="text-xs text-amber-600">{selectedAgent.phone}</p></div><div className="text-right text-[10px] text-slate-400"><p>{BRAND_NAME}</p><p>www.operox.pl</p></div></div>
                 </div>
             </div>
