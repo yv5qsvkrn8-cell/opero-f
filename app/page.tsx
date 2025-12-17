@@ -1,17 +1,17 @@
 "use client";
 
 /* ===========================================================================================
-   PLIK: page.tsx (v100.4 - FINALNE POŁĄCZENIE Z GOOGLE CLOUD RUN)zzzzz
+   PLIK: page.tsx (v100.5 - NAPRAWIONE IMPORTY I TYPY)
    =========================================================================================== */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   LayoutDashboard, Home as HomeIcon, Calendar, Bell, Users, 
   PieChart as PieChartIcon, MapPin, Sparkles, Repeat, 
-  FileSignature, Building2, User, Lock, Loader2, DollarSign, Hammer
+  FileSignature, Building2, User, Lock, Loader2, DollarSign, Hammer,
+  Search // Dodano brakujący import
 } from 'lucide-react';
 
-// IMPORT DANYCH I ADRESU API
 // IMPORT DANYCH I ADRESU API
 const API_URL = "https://operox-backend-7075670079400.europe-central2.run.app";
 
@@ -21,18 +21,26 @@ import {
     CalendarView, ScriptsView, InternalMarketView, AnalyticsView, FinanceView,
     TeamView, DistrictAnalysisView, PdfGeneratorView, LoginView
 } from './components';
+
 import { S } from './styles';
 import { 
   INITIAL_PROPERTIES, 
   USERS, 
   INITIAL_LEADS, 
-  INITIAL_EVENTS 
+  INITIAL_EVENTS,
+  INTERNAL_MARKET_ADS // Dodano brakujący import ze store
 } from './store';
 
-// --- KONFIGURACJA API (NAPRAWIONA) ---
+// --- KONFIGURACJA API ---
 const API_BASE_URL = `${API_URL}/api`; 
 const SCRAPE_API_URL = `${API_URL}/api/scrape`;
 const API_KEY = 'YOUR_SECRET_API_KEY';
+
+// Deklaracja brakujących stylów, aby uniknąć błędu "Cannot find name"
+const globalStyles = `
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+`;
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -63,7 +71,7 @@ export default function Home() {
         const propRes = await fetch(`${API_BASE_URL}/properties?user_id=${currentUser.id}`, { headers: { 'X-Api-Key': API_KEY } });
         if (propRes.ok) {
             const propData = await propRes.json();
-            if (Array.isArray(propData)) setProperties(propData); // Pozwalamy na [] z Google Cloud
+            if (Array.isArray(propData)) setProperties(propData);
         }
 
         const initRes = await fetch(`${API_BASE_URL}/init_data`, { headers: { 'X-Api-Key': API_KEY } });
@@ -99,7 +107,7 @@ export default function Home() {
           });
           if (res.ok) {
               addToast("Skanowanie rozpoczęte. Wyniki pojawią się za 2-3 minuty.", "success");
-              setTimeout(fetchDataForUser, 60000); // Odśwież za minutę
+              setTimeout(fetchDataForUser, 60000);
           }
       } catch (err) { addToast("Błąd skanera na Google Cloud.", "error"); } 
       finally { setIsScraping(false); }
