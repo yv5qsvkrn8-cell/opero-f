@@ -1,7 +1,7 @@
 "use client";
 
 /* ===========================================================================================
-   PLIK: page.tsx (v100.4 - FINALNE POŁĄCZENIE Z GOOGLE CLOUD RUN)
+   PLIK: page.tsx (v100.4 - FINALNE POŁĄCZENIE Z GOOGLE CLOUD RUN)zzzzz
    =========================================================================================== */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // IMPORT DANYCH I ADRESU API
-import { API_URL, USERS, INITIAL_PROPERTIES, INITIAL_LEADS, INITIAL_EVENTS, INTERNAL_MARKET_ADS, globalStyles } from './store';
+API_URL = "https://operox-backend-7075670079400.europe-central2.run.app";
 
 // IMPORT KOMPONENTÓW
 import { 
