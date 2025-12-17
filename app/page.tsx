@@ -22,6 +22,12 @@ import {
     TeamView, DistrictAnalysisView, PdfGeneratorView, LoginView
 } from './components';
 import { S } from './styles';
+import { 
+  INITIAL_PROPERTIES, 
+  USERS, 
+  INITIAL_LEADS, 
+  INITIAL_EVENTS 
+} from './store';
 
 // --- KONFIGURACJA API (NAPRAWIONA) ---
 const API_BASE_URL = `${API_URL}/api`; 
