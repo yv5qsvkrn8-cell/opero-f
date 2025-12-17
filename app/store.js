@@ -1,8 +1,7 @@
 /* ==========================================================================================
-   PLIK: store.js (ZAKTUALIZOWANY O NOWY BACKEND GOOGLE CLOUD)
+   PLIK: store.js (FIX: DODANO INTERNAL_MARKET_ADS)
    ========================================================================================== */
 
-// --- ADRES TWOJEGO NOWEGO BACKENDU ---
 export const API_URL = "https://operox-backend-102470079400.europe-central2.run.app";
 
 export const globalStyles = `
@@ -125,6 +124,9 @@ export const INITIAL_EVENTS = [
   { id: 2, title: 'Prezentacja Penthouse', time: '14:30', client: 'Anna Lewandowska', type: 'presentation', day: 12, linkedPropertyId: 101 }
 ];
 
+// DODANO BRAKUJĄCĄ ZMIENNĄ
+export const INTERNAL_MARKET_ADS = []; 
+
 export const AGENT_RANKING = [
   { id: 2, name: 'Zofia Agentka', sales: 4200000, deals: 3 },
   { id: 1, name: 'Adam Prezes', sales: 2500000, deals: 1 }
@@ -147,4 +149,3 @@ export const DISTRICTS_DATA = [
     bestFor: 'Student, Inwestor, Singiel'
   }
 ];
-// ... pozostałe dane (stats, scripts itp.) możesz dołączyć tutaj bez zmian
