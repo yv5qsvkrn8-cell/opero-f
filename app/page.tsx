@@ -32,9 +32,12 @@ type Event = { id: number; title: string; day: number; time: string; };
 type Announcement = { id: number; text: string; priority: 'urgent' | 'normal'; author: string; }; 
 
 // PORT BACKENDOWY (Render)
-const API_BASE_URL = 'https://operox-backend.onrender.com/api'; 
-const SCRAPE_API_URL = 'https://operox-backend.onrender.com/api/scrape_data'; 
-const API_KEY = 'YOUR_SECRET_API_KEY'; 
+// page.tsx - LINIE 31-33 (ZAMIEŃ NA TO)
+import { API_URL } from './store'; // Importujemy działający adres ze store.js
+
+const API_BASE_URL = `${API_URL}/api`; 
+const SCRAPE_API_URL = `${API_URL}/api/scrape`; // Poprawiono też końcówkę z scrape_data na scrape
+const API_KEY = 'YOUR_SECRET_API_KEY';
 
 // --- STATE UI I FORMS (Rozdzielone) ---
 
