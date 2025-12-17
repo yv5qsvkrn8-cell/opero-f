@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 
 // IMPORT DANYCH I ADRESU API
-API_URL = "https://operox-backend-7075670079400.europe-central2.run.app";
+// IMPORT DANYCH I ADRESU API
+const API_URL = "https://operox-backend-7075670079400.europe-central2.run.app";
 
 // IMPORT KOMPONENTÓW
 import { 
